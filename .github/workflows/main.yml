@@ -26,6 +26,11 @@ jobs:
       run: |
         docker logs $(docker ps -q --filter ancestor=my-app)
 
+    - name: Install Kondukto CLI     # Kondukto CLI Kurulumu
+      run: |
+        curl -sSL https://cli.kondukto.io | sh
+        export PATH=$PATH:/usr/local/bin
+        
     - name: Run Gitleaks Scan    # Kondukto Taraması (Gitleaks)
       env:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
