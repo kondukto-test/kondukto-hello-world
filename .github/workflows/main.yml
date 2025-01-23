@@ -1,0 +1,55 @@
+name: Kondukto Scan with Docker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  kondukto-scan:
+    runs-on: ubuntu-latest
+
+    steps:     # Kodları Checkout Eder
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Build Docker Image     # Docker İmajını Build Eder
+
+      run: |
+        docker build -t my-app .
+
+    - name: Run Application     #  Uygulamayı Çalıştır port açar
+      run: |
+        docker run -d -p 3000:3000 my-app
+
+    - name: Check Container Logs    #  Konteyner Loglarını Kontrol Eder hello world gelmsi lazım
+      run: |
+        docker logs $(docker ps -q --filter ancestor=my-app)
+
+    - name: Run Gitleaks Scan    # Kondukto Taraması (Gitleaks)
+      env:
+        KONDUKTO_HOST: ${{ secrets.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+      run: |
+        kdt scan -p ${{ github.repository }} -t gitleaks -b main
+
+    - name: Run Checkmarx AST Scan    # Kondukto Taraması (Checkmarx AST)
+      env:
+        KONDUKTO_HOST: ${{ secrets.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+      run: |
+        kdt scan -p ${{ github.repository }} -t checkmarxast -b main --params=start_scan:true
+
+    - name: Run Checkmarx SCA Scan    # Kondukto Taraması (Checkmarx SCA)
+      env:
+        KONDUKTO_HOST: ${{ secrets.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+      run: |
+        kdt scan -p ${{ github.repository }} -t checkmarxastsca -b main --params=start_scan:true
+
+    - name: Run Checkmarx KICS Scan     #  Kondukto Taraması (Checkmarx KICS)
+      env:
+        KONDUKTO_HOST: ${{ secrets.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+      run: |
+        kdt scan -p ${{ github.repository }} -t checkmarxastkics -b main --params=start_scan:true
