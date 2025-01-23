@@ -28,28 +28,28 @@ jobs:
 
     - name: Run Gitleaks Scan    # Kondukto Taraması (Gitleaks)
       env:
-        KONDUKTO_HOST: ${{ secrets.KONDUKTO_HOST }}
-        KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+        KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
         kdt scan -p ${{ github.repository }} -t gitleaks -b main
 
     - name: Run Checkmarx AST Scan    # Kondukto Taraması (Checkmarx AST)
       env:
-        KONDUKTO_HOST: ${{ secrets.KONDUKTO_HOST }}
-        KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+        KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
         kdt scan -p ${{ github.repository }} -t checkmarxast -b main --params=start_scan:true
 
     - name: Run Checkmarx SCA Scan    # Kondukto Taraması (Checkmarx SCA)
       env:
-        KONDUKTO_HOST: ${{ secrets.KONDUKTO_HOST }}
-        KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+        KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
         kdt scan -p ${{ github.repository }} -t checkmarxastsca -b main --params=start_scan:true
 
     - name: Run Checkmarx KICS Scan     #  Kondukto Taraması (Checkmarx KICS)
       env:
-        KONDUKTO_HOST: ${{ secrets.KONDUKTO_HOST }}
-        KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+        KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
         kdt scan -p ${{ github.repository }} -t checkmarxastkics -b main --params=start_scan:true
