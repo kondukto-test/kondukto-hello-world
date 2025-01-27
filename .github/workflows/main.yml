@@ -45,7 +45,7 @@ jobs:
           KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
           KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
         run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t gitleaks -b main --debug
+          kdt scan -p ${{ env.PROJECT_NAME }} -t gitleaks -b main -v
 
       - name: Run Checkmarx AST Scan
         if: success()
@@ -53,7 +53,7 @@ jobs:
           KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
           KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
         run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxast -b main --params=start_scan:true --debug
+          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxast -b main --params=start_scan:true -v
 
       - name: Run Checkmarx SCA Scan
         if: success()
@@ -61,7 +61,7 @@ jobs:
           KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
           KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
         run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxastsca -b main --params=start_scan:true --debug
+          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxastsca -b main --params=start_scan:true -v
 
       - name: Run Checkmarx KICS Scan
         if: success()
@@ -69,4 +69,4 @@ jobs:
           KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
           KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
         run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxastkics -b main --params=start_scan:true --debug
+          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxastkics -b main --params=start_scan:true -v
