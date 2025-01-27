@@ -1,4 +1,4 @@
-name: Kondukto Scan with Docker
+name: Kondukto Debug Pipeline
 on:
   push:
     branches:
@@ -8,73 +8,32 @@ env:
   PROJECT_NAME: hello-world
 
 jobs:
-  kondukto-scan:
+  debug-connection:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Build Docker Image
-        run: |
-          docker build -t my-app .
-
-      - name: Run Application
-        run: |
-          docker run -d -p 3000:3000 my-app
-
-      - name: Check Container Logs
-        run: |
-          sleep 5
-          docker logs $(docker ps -q --filter ancestor=my-app)
-
       - name: Install Kondukto CLI
         run: |
           curl -sSL https://cli.kondukto.io | sh
           export PATH=$PATH:/usr/local/bin
+      
+      - name: Check Environment Variables
+        env:
+          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
+          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
+        run: |
+          echo "=== Environment Check ==="
+          # Host kontrolü (domain kısmını göster, protokol kısmını gizle)
+          echo "KONDUKTO_HOST exists: $(if [ ! -z "$KONDUKTO_HOST" ]; then echo "YES"; else echo "NO"; fi)"
+          echo "KONDUKTO_HOST domain: $(echo $KONDUKTO_HOST | cut -d'/' -f3)"
+          
+          # Token kontrolü (sadece var/yok bilgisi)
+          echo "KONDUKTO_TOKEN exists: $(if [ ! -z "$KONDUKTO_TOKEN" ]; then echo "YES"; else echo "NO"; fi)"
+          echo "KONDUKTO_TOKEN length: $(echo $KONDUKTO_TOKEN | wc -c)"
+          
+          # Kondukto CLI version kontrolü
+          echo "=== Kondukto CLI Version ==="
           kdt version
-
-      - name: Debug Kondukto Project Information
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
-        run: |
-          echo "=== Debug Information Start ==="
-          echo "Checking Kondukto Connection..."
-          kdt status
-          echo "Listing All Projects..."
-          kdt project list --json
-          echo "Current Project Name: ${{ env.PROJECT_NAME }}"
-          echo "GitHub Repository: ${{ github.repository }}"
-          echo "=== Debug Information End ==="
-
-      - name: Run Gitleaks Scan
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
-        run: |
-          echo "Attempting scan with PROJECT_NAME..."
-          kdt scan -p ${{ env.PROJECT_NAME }} -t gitleaks -b main --debug
-
-      - name: Run Checkmarx AST Scan
-        if: success()
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
-        run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxast -b main --params=start_scan:true --debug
-
-      - name: Run Checkmarx SCA Scan
-        if: success()
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
-        run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxastsca -b main --params=start_scan:true --debug
-
-      - name: Run Checkmarx KICS Scan
-        if: success()
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
-        run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxastkics -b main --params=start_scan:true --debug
+          
+          echo "=== Testing Connection ==="
+          # Basit bir komut ile bağlantıyı test et
+          kdt project list
