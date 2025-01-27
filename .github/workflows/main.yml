@@ -5,7 +5,7 @@ on:
       - main
 
 env:
-  PROJECT_NAME: kondukto-hello-world  # Kondukto'daki proje adınız
+  PROJECT_NAME: kondukto-hello-world
 
 jobs:
   kondukto-scan:
@@ -24,32 +24,39 @@ jobs:
 
       - name: Check Container Logs
         run: |
-          sleep 5  # Konteyner'ın başlaması için kısa bir bekleme
+          sleep 5
           docker logs $(docker ps -q --filter ancestor=my-app)
 
       - name: Install Kondukto CLI
         run: |
           curl -sSL https://cli.kondukto.io | sh
           export PATH=$PATH:/usr/local/bin
-          # CLI'ın düzgün kurulduğunu kontrol et
           kdt version
 
-      - name: Verify Kondukto Connection
+      - name: Debug Kondukto Project Information
         env:
           KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
           KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
         run: |
-          # Kondukto bağlantısını test et
-          kdt project list
+          echo "=== Debug Information Start ==="
+          echo "Checking Kondukto Connection..."
+          kdt status
+          echo "Listing All Projects..."
+          kdt project list --json
+          echo "Current Project Name: ${{ env.PROJECT_NAME }}"
+          echo "GitHub Repository: ${{ github.repository }}"
+          echo "=== Debug Information End ==="
 
       - name: Run Gitleaks Scan
         env:
           KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
           KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
         run: |
+          echo "Attempting scan with PROJECT_NAME..."
           kdt scan -p ${{ env.PROJECT_NAME }} -t gitleaks -b main --debug
 
       - name: Run Checkmarx AST Scan
+        if: success()
         env:
           KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
           KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
@@ -57,6 +64,7 @@ jobs:
           kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxast -b main --params=start_scan:true --debug
 
       - name: Run Checkmarx SCA Scan
+        if: success()
         env:
           KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
           KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
@@ -64,14 +72,9 @@ jobs:
           kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxastsca -b main --params=start_scan:true --debug
 
       - name: Run Checkmarx KICS Scan
+        if: success()
         env:
           KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
           KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
         run: |
           kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxastkics -b main --params=start_scan:true --debug
-
-      - name: Error Check
-        if: failure()
-        run: |
-          echo "Pipeline failed. Please check the logs above for details."
-          exit 1
