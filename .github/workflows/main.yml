@@ -5,7 +5,7 @@ on:
       - main
 
 env:
-  PROJECT_NAME: kondukto-hello-world
+  PROJECT_NAME: hello-world
 
 jobs:
   kondukto-scan:
