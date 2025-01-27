@@ -11,7 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check KONDUKTO_HOST format and accessibility
+        env:
+          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         run: |
+          echo "Debug: Checking KONDUKTO_HOST value..."
+          echo "Current KONDUKTO_HOST value: $KONDUKTO_HOST"
+          
+          if [ -z "$KONDUKTO_HOST" ]; then
+            echo "Error: KONDUKTO_HOST is empty or not set"
+            exit 1
+          fi
+          
           # Check if KONDUKTO_HOST starts with https://
           if [[ ! "$KONDUKTO_HOST" =~ ^https:// ]]; then
             echo "KONDUKTO_HOST must start with https://"
@@ -22,17 +32,13 @@ jobs:
           # Extract domain without protocol
           DOMAIN=$(echo "$KONDUKTO_HOST" | sed 's|^https://||')
           echo "KONDUKTO_HOST domain: $DOMAIN"
-          
-          # Basic curl check (optional, comment if not needed)
-          if ! curl --output /dev/null --silent --head --fail "$KONDUKTO_HOST"; then
-            echo "Warning: Unable to reach $KONDUKTO_HOST"
-          fi
 
       - name: Validate KONDUKTO_TOKEN
+        env:
+          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
         run: |
-          # Check if token exists
           if [ -z "$KONDUKTO_TOKEN" ]; then
-            echo "KONDUKTO_TOKEN is empty"
+            echo "Error: KONDUKTO_TOKEN is empty or not set"
             exit 1
           fi
           echo "KONDUKTO_TOKEN exists: YES"
@@ -44,20 +50,16 @@ jobs:
           echo "KONDUKTO_TOKEN length (wc): $TOKEN_LENGTH"
           echo "KONDUKTO_TOKEN length (bash): $TOKEN_LENGTH_BASH"
           
-          # Check for hidden characters
           if [ "$TOKEN_LENGTH" -ne 81 ]; then
             echo "Token length mismatch. Expected 81, got $TOKEN_LENGTH"
             echo "Checking for hidden characters:"
             echo -n "$KONDUKTO_TOKEN" | hexdump -C
             exit 1
           fi
-          
-          # Validate token format (assuming base64)
-          if ! echo "$KONDUKTO_TOKEN" | base64 -d > /dev/null 2>&1; then
-            echo "Warning: Token is not valid base64"
-          fi
 
       - name: Summary
+        env:
+          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         run: |
           echo "Integration Check Summary:"
           echo "========================="
