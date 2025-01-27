@@ -1,39 +1,67 @@
-name: Kondukto Debug Pipeline
+name: Kondukto Integration Check
+
 on:
   push:
-    branches:
-      - main
-
-env:
-  PROJECT_NAME: hello-world
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  debug-connection:
+  check-kondukto-integration:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Kondukto CLI
+      - name: Check KONDUKTO_HOST format and accessibility
         run: |
-          curl -sSL https://cli.kondukto.io | sh
-          export PATH=$PATH:/usr/local/bin
-      
-      - name: Check Environment Variables
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
+          # Check if KONDUKTO_HOST starts with https://
+          if [[ ! "$KONDUKTO_HOST" =~ ^https:// ]]; then
+            echo "KONDUKTO_HOST must start with https://"
+            echo "Current value: $KONDUKTO_HOST"
+            exit 1
+          fi
+          
+          # Extract domain without protocol
+          DOMAIN=$(echo "$KONDUKTO_HOST" | sed 's|^https://||')
+          echo "KONDUKTO_HOST domain: $DOMAIN"
+          
+          # Basic curl check (optional, comment if not needed)
+          if ! curl --output /dev/null --silent --head --fail "$KONDUKTO_HOST"; then
+            echo "Warning: Unable to reach $KONDUKTO_HOST"
+          fi
+
+      - name: Validate KONDUKTO_TOKEN
         run: |
-          echo "=== Environment Check ==="
-          # Host kontrolü (domain kısmını göster, protokol kısmını gizle)
-          echo "KONDUKTO_HOST exists: $(if [ ! -z "$KONDUKTO_HOST" ]; then echo "YES"; else echo "NO"; fi)"
-          echo "KONDUKTO_HOST domain: $(echo $KONDUKTO_HOST | cut -d'/' -f3)"
+          # Check if token exists
+          if [ -z "$KONDUKTO_TOKEN" ]; then
+            echo "KONDUKTO_TOKEN is empty"
+            exit 1
+          fi
+          echo "KONDUKTO_TOKEN exists: YES"
           
-          # Token kontrolü (sadece var/yok bilgisi)
-          echo "KONDUKTO_TOKEN exists: $(if [ ! -z "$KONDUKTO_TOKEN" ]; then echo "YES"; else echo "NO"; fi)"
-          echo "KONDUKTO_TOKEN length: $(echo $KONDUKTO_TOKEN | wc -c)"
+          # Check token length using multiple methods
+          TOKEN_LENGTH=$(echo -n "$KONDUKTO_TOKEN" | wc -c)
+          TOKEN_LENGTH_BASH=${#KONDUKTO_TOKEN}
           
-          # Kondukto CLI version kontrolü
-          echo "=== Kondukto CLI Version ==="
-          kdt version
+          echo "KONDUKTO_TOKEN length (wc): $TOKEN_LENGTH"
+          echo "KONDUKTO_TOKEN length (bash): $TOKEN_LENGTH_BASH"
           
-          echo "=== Testing Connection ==="
-          # Basit bir komut ile bağlantıyı test et
-          kdt project list
+          # Check for hidden characters
+          if [ "$TOKEN_LENGTH" -ne 81 ]; then
+            echo "Token length mismatch. Expected 81, got $TOKEN_LENGTH"
+            echo "Checking for hidden characters:"
+            echo -n "$KONDUKTO_TOKEN" | hexdump -C
+            exit 1
+          fi
+          
+          # Validate token format (assuming base64)
+          if ! echo "$KONDUKTO_TOKEN" | base64 -d > /dev/null 2>&1; then
+            echo "Warning: Token is not valid base64"
+          fi
+
+      - name: Summary
+        run: |
+          echo "Integration Check Summary:"
+          echo "========================="
+          echo "KONDUKTO_HOST: $KONDUKTO_HOST"
+          echo "KONDUKTO_TOKEN: [SECURED]"
+          echo "All checks passed successfully!"
+        if: success()
