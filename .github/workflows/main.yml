@@ -1,72 +1,61 @@
 name: Kondukto Scan with Docker
+
 on:
   push:
     branches:
       - main
 
-env:
-  PROJECT_NAME: hello-world
-
 jobs:
   kondukto-scan:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
 
-      - name: Build Docker Image
-        run: |
-          docker build -t my-app .
+    steps:     # Kodları Checkout Eder
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-      - name: Run Application
-        run: |
-          docker run -d -p 3000:3000 my-app
+    - name: Build Docker Image     # Docker İmajını Build Eder
 
-      - name: Check Container Logs
-        run: |
-          sleep 5
-          docker logs $(docker ps -q --filter ancestor=my-app)
+      run: |
+        docker build -t my-app .
 
-      - name: Install Kondukto CLI
-        run: |
-          curl -sSL https://cli.kondukto.io | sh
-          export PATH=$PATH:/usr/local/bin
-          kdt version
+    - name: Run Application     #  Uygulamayı Çalıştır port açar
+      run: |
+        docker run -d -p 3000:3000 my-app
 
-      - name: Verify Kondukto Connection
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
-        run: |
-          kdt project list
+    - name: Check Container Logs    #  Konteyner Loglarını Kontrol Eder hello world gelmsi lazım
+      run: |
+        docker logs $(docker ps -q --filter ancestor=my-app)
 
-      - name: Run Gitleaks Scan
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
-        run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t gitleaks -b main -v
+    - name: Install Kondukto CLI     # Kondukto CLI Kurulumu
+      run: |
+        curl -sSL https://cli.kondukto.io | sh
+        export PATH=$PATH:/usr/local/bin
+        
+    - name: Run Gitleaks Scan    # Kondukto Taraması (Gitleaks)
+      env:
+        KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
+      run: |
+        kdt scan -p ${{ github.repository }} -t gitleaks -b main
 
-      - name: Run Checkmarx AST Scan
-        if: success()
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
-        run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxast -b main --params=start_scan:true -v
+    - name: Run Checkmarx AST Scan    # Kondukto Taraması (Checkmarx AST)
+      env:
+        KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
+      run: |
+        kdt scan -p ${{ github.repository }} -t checkmarxast -b main --params=start_scan:true
 
-      - name: Run Checkmarx SCA Scan
-        if: success()
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
-        run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxastsca -b main --params=start_scan:true -v
+    - name: Run Checkmarx SCA Scan    # Kondukto Taraması (Checkmarx SCA)
+      env:
+        KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
+      run: |
+        kdt scan -p ${{ github.repository }} -t checkmarxastsca -b main --params=start_scan:true
 
-      - name: Run Checkmarx KICS Scan
-        if: success()
-        env:
-          KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
-          KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
-        run: |
-          kdt scan -p ${{ env.PROJECT_NAME }} -t checkmarxastkics -b main --params=start_scan:true -v
+    - name: Run Checkmarx KICS Scan     #  Kondukto Taraması (Checkmarx KICS)
+      env:
+        KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
+        KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
+      run: |
+        kdt scan -p ${{ github.repository }} -t checkmarxastkics -b main --params=start_scan:true
+
