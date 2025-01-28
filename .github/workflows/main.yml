@@ -43,6 +43,7 @@ jobs:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
+        kdt scanner params -t checkmarxast
         kdt scan -p "Hello-Word" -t checkmarxast -b main --params=start_scan:true
 
     - name: Run Checkmarx SCA Scan    # Kondukto Taraması (Checkmarx SCA)
