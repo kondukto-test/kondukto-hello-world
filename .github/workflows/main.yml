@@ -36,26 +36,26 @@ jobs:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
-        kdt scan -p ${{ github.repository }} -t gitleaks -b main
+        kdt scan -p "Hello-Word" -t gitleaks -b main
 
     - name: Run Checkmarx AST Scan    # Kondukto Taraması (Checkmarx AST)
       env:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
-        kdt scan -p ${{ github.repository }} -t checkmarxast -b main --params=start_scan:true
+        kdt scan -p "Hello-Word" -t checkmarxast -b main --params=start_scan:true
 
     - name: Run Checkmarx SCA Scan    # Kondukto Taraması (Checkmarx SCA)
       env:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
-        kdt scan -p ${{ github.repository }} -t checkmarxastsca -b main --params=start_scan:true
+        kdt scan -p "Hello-Word" -t checkmarxastsca -b main --params=start_scan:true
 
     - name: Run Checkmarx KICS Scan     #  Kondukto Taraması (Checkmarx KICS)
       env:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
-        kdt scan -p ${{ github.repository }} -t checkmarxastkics -b main --params=start_scan:true
+        kdt scan -p "Hello-Word" -t checkmarxastkics -b main --params=start_scan:true
 
