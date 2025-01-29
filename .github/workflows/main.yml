@@ -45,14 +45,14 @@ jobs:
       run: |
         kdt scan -p "Hello-World" -t checkmarxast -b main --params=start_scan:true --params=project:kondukto-test/kondukto-hello-world
 
-    - name: Run Checkmarx SCA Scan    # Kondukto Taraması (Checkmarx SCA)
+    - name: Run Checkmarx KICS Scan    # Kondukto Taraması (Checkmarx SCA)
       env:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
         kdt scan -p "Hello-World" -t checkmarxastkics -b main --params=start_scan:true --params=project:kondukto-test/kondukto-hello-world
 
-    - name: Run Checkmarx KICS Scan     #  Kondukto Taraması (Checkmarx KICS)
+    - name: Run Checkmarx SCA Scan     #  Kondukto Taraması (Checkmarx KICS)
       env:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
