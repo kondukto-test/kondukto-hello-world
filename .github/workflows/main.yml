@@ -9,24 +9,24 @@ jobs:
   kondukto-scan:
     runs-on: ubuntu-latest
 
-    steps:     # Kodları Checkout Eder
+    steps:     
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Build Docker Image     # Docker İmajını Build Eder
+    - name: Build Docker Image     
 
       run: |
         docker build -t my-app .
 
-    - name: Run Application     #  Uygulamayı Çalıştır port açar
+    - name: Run Application     
       run: |
         docker run -d -p 3000:3000 my-app
 
-    - name: Check Container Logs    #  Konteyner Loglarını Kontrol Eder hello world gelmsi lazım
+    - name: Check Container Logs    
       run: |
         docker logs $(docker ps -q --filter ancestor=my-app)
 
-    - name: Install Kondukto CLI     # Kondukto CLI Kurulumu
+    - name: Install Kondukto CLI     
       run: |
         curl -sSL https://cli.kondukto.io | sh
         export PATH=$PATH:/usr/local/bin
@@ -43,19 +43,21 @@ jobs:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
-        kdt scan -p "Hello-Word" -t checkmarxast -b main --params=start_scan:true --params=project:ITSEC-KONDUKTO-SUPERAPP/Hello-Word
+        kdt scan -p "Hello-Word" -t checkmarxast -b main --params=start_scan:true --params=project:kondukto-test/kondukto-hello-world
 
     - name: Run Checkmarx SCA Scan    # Kondukto Taraması (Checkmarx SCA)
       env:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
-        kdt scan -p "Hello-Word" -t checkmarxastsca -b main --params=start_scan:true
+        kdt scan -p "Hello-Word" -t checkmarxastsca -b main --params=start_scan:true --params=project:kondukto-test/kondukto-hello-world
+
 
     - name: Run Checkmarx KICS Scan     #  Kondukto Taraması (Checkmarx KICS)
       env:
         KONDUKTO_HOST: ${{ vars.KONDUKTO_HOST }}
         KONDUKTO_TOKEN: ${{ vars.KONDUKTO_TOKEN }}
       run: |
-        kdt scan -p "Hello-Word" -t checkmarxastkics -b main --params=start_scan:true
+        kdt scan -p "Hello-Word" -t checkmarxastkics -b main --params=start_scan:true --params=project:kondukto-test/kondukto-hello-world
+
 
